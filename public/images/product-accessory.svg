@@ -1,0 +1,8 @@
+<svg width="900" height="900" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="900" fill="#121212"/>
+  <rect x="70" y="70" width="760" height="760" fill="#232323"/>
+  <rect x="190" y="380" width="520" height="92" rx="8" fill="#EEE8DC"/>
+  <rect x="400" y="330" width="134" height="192" rx="14" fill="#B99859"/>
+  <rect x="426" y="356" width="82" height="140" rx="8" fill="#232323"/>
+  <text x="450" y="690" fill="#C9A96A" font-family="Arial, sans-serif" font-size="34" text-anchor="middle">ACCESSOIRES GM</text>
+</svg>

@@ -1,0 +1,7 @@
+<svg width="900" height="900" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="900" fill="#171717"/>
+  <rect x="70" y="70" width="760" height="760" fill="#222"/>
+  <path d="M170 570C260 555 350 500 424 416C484 488 585 522 716 518C742 518 764 538 770 563L782 610C785 626 773 640 756 640H179C150 640 140 575 170 570Z" fill="#E7E1D6"/>
+  <path d="M266 560C332 535 389 490 436 425" stroke="#B99859" stroke-width="22" stroke-linecap="round"/>
+  <text x="450" y="750" fill="#C9A96A" font-family="Arial, sans-serif" font-size="34" text-anchor="middle">GABON MODE</text>
+</svg>

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Gabon Mode</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#1a1a2e;--gold:#c9a84c;--bg:#f5f5f5;--card:#fff;--text:#333;--gray:#888}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text)}
+.hidden{display:none!important}
+/* Login */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--primary)}
+.login-box{background:var(--card);padding:40px;border-radius:16px;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-box h1{text-align:center;color:var(--primary);margin-bottom:8px}
+.login-box p{text-align:center;color:var(--gray);margin-bottom:24px}
+.login-box input{width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:15px;margin-bottom:12px;transition:border-color .2s}
+.login-box input:focus{border-color:var(--gold);outline:none}
+.login-box button{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer}
+.login-box .error{color:#e74c3c;text-align:center;margin-top:12px}
+/* Layout */
+#app{display:flex;min-height:100vh}
+.sidebar{width:250px;background:var(--primary);color:#fff;padding:20px;position:fixed;height:100vh;overflow-y:auto;z-index:100}
+.sidebar h2{font-size:18px;margin-bottom:24px;color:var(--gold)}
+.sidebar a{display:block;padding:10px 16px;color:#ccc;text-decoration:none;border-radius:8px;margin-bottom:4px;cursor:pointer}
+.sidebar a:hover,.sidebar a.active{background:rgba(255,255,255,.1);color:#fff}
+.main{margin-left:250px;flex:1;padding:24px;width:calc(100% - 250px)}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #e0e0e0}
+.topbar h1{font-size:22px}
+.topbar .user-info{color:var(--gray);font-size:14px}
+/* Cards */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:32px}
+.stat-card{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.stat-card .label{font-size:13px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+.stat-card .value{font-size:28px;font-weight:700;margin-top:8px}
+.stat-card .value.gold{color:var(--gold)}
+.stat-card .value.blue{color:var(--primary)}
+.stat-card .sub{font-size:12px;color:var(--gray);margin-top:4px}
+/* Tables */
+.card{background:var(--card);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);padding:20px;margin-bottom:24px}
+.card h3{margin-bottom:16px;font-size:16px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #eee;font-size:14px}
+th{font-weight:600;color:var(--gray);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+tr:hover{background:#fafafa}
+/* Status badges */
+.badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge.en_attente{background:#fff3cd;color:#856404}
+.badge.confirmee{background:#d1ecf1;color:#0c5460}
+.badge.preparation{background:#cce5ff;color:#004085}
+.badge.pret{background:#d4edda;color:#155724}
+.badge.livree{background:#d4edda;color:#155724}
+.badge.annulee{background:#f8d7da;color:#721c24}
+/* Buttons */
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-gold{background:var(--gold);color:#000}
+.btn-danger{background:#e74c3c;color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+/* Modal */
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal-content{background:var(--card);border-radius:16px;padding:32px;width:90%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-content h2{margin-bottom:20px}
+.modal-content .form-group{margin-bottom:16px}
+.modal-content label{display:block;font-weight:600;margin-bottom:6px;font-size:14px}
+.modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px}
+.modal-content textarea{min-height:80px;resize:vertical}
+.modal-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px}
+/* Charts */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+.chart-card{background:var(--card);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);padding:20px}
+.chart-card h3{margin-bottom:16px;font-size:14px;color:var(--gray);text-transform:uppercase}
+/* Top products list */
+.top-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0}
+.top-item:last-child{border:none}
+.top-item .rank{width:24px;height:24px;background:var(--gold);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-right:12px}
+.top-item .info{flex:1}
+.top-item .info .name{font-weight:600;font-size:14px}
+.top-item .info .qty{font-size:12px;color:var(--gray)}
+.top-item .revenue{font-weight:700;color:var(--gold)}
+/* Responsive */
+@media(max-width:768px){
+  .sidebar{width:60px;padding:12px 8px}
+  .sidebar h2,.sidebar a span{display:none}
+  .sidebar a{padding:10px 8px;text-align:center}
+  .main{margin-left:60px;width:calc(100% - 60px);padding:16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .charts-grid{grid-template-columns:1fr}
+  .modal-content{padding:20px;width:95%}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+  .topbar{flex-direction:column;gap:8px}
+}
+</style>
+</head>
+<body>
+<div id="loginPage">
+  <div class="login-box">
+    <h1>🔐 Gabon Mode</h1>
+    <p>Panel Administrateur</p>
+    <input type="text" id="loginUser" placeholder="Nom d'utilisateur" autocomplete="username">
+    <input type="password" id="loginPass" placeholder="Mot de passe" autocomplete="current-password">
+    <button onclick="login()">Se connecter</button>
+    <div class="error" id="loginError"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <nav class="sidebar">
+    <h2>⚜️ Gabon Mode</h2>
+    <a class="active" onclick="showPage('dashboard',this)">📊 <span>Tableau de bord</span></a>
+    <a onclick="showPage('products',this)">👕 <span>Produits</span></a>
+    <a onclick="showPage('orders',this)">📦 <span>Commandes</span></a>
+    <a onclick="showPage('reports',this)">📈 <span>Rapports</span></a>
+    <a onclick="logout()" style="margin-top:auto;color:#e74c3c">🚪 <span>Déconnexion</span></a>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Tableau de bord</h1>
+      <div class="user-info" id="userInfo"></div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="page-dashboard">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="charts-grid">
+        <div class="chart-card"><h3>Revenus Mensuels</h3><canvas id="revenueChart"></canvas></div>
+        <div class="chart-card"><h3>Top Produits</h3><div id="topProducts"></div></div>
+      </div>
+      <div class="card"><h3>Dernières Commandes</h3><div id="recentOrdersTable"></div></div>
+    </div>
+
+    <!-- Products -->
+    <div id="page-products" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <input type="text" id="productSearch" placeholder="Rechercher..." oninput="loadProducts()" style="padding:8px 12px;border:2px solid #e0e0e0;border-radius:8px;width:300px">
+        <button class="btn btn-gold" onclick="openProductModal()">+ Nouveau produit</button>
+      </div>
+      <div class="card"><table><thead><tr><th>Image</th><th>Nom</th><th>Prix</th><th>Stock</th><th>Catégorie</th><th>Actions</th></tr></thead><tbody id="productsTable"></tbody></table></div>
+    </div>
+
+    <!-- Orders -->
+    <div id="page-orders" class="hidden">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="loadOrders('')">Toutes</button>
+        <button class="btn btn-sm" style="background:#fff3cd;color:#856404" onclick="loadOrders('en_attente')">En attente</button>
+        <button class="btn btn-sm" style="background:#d1ecf1;color:#0c5460" onclick="loadOrders('confirmee')">Confirmée</button>
+        <button class="btn btn-sm" style="background:#cce5ff;color:#004085" onclick="loadOrders('preparation')">Préparation</button>
+        <button class="btn btn-sm" style="background:#d4edda;color:#155724" onclick="loadOrders('pret')">Prêt</button>
+        <button class="btn btn-sm" style="background:#f8d7da;color:#721c24" onclick="loadOrders('livree')">Livrée</button>
+      </div>
+      <div class="card"><table><thead><tr><th>Réf</th><th>Client</th><th>Téléphone</th><th>Total</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody id="ordersTable"></tbody></table></div>
+    </div>
+
+    <!-- Reports -->
+    <div id="page-reports" class="hidden">
+      <div class="stats-grid" id="reportStats"></div>
+      <div class="card"><h3>Ventes Mensuelles</h3><canvas id="salesChart" style="max-height:300px"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div id="productModal" class="modal hidden" onclick="if(event.target===this)closeProductModal()">
+  <div class="modal-content">
+    <h2 id="modalTitle">Nouveau Produit</h2>
+    <div class="form-group"><label>Nom *</label><input id="prodName"></div>
+    <div class="form-group"><label>Description</label><textarea id="prodDesc"></textarea></div>
+    <div class="form-group"><label>Prix (FCFA) *</label><input type="number" id="prodPrice"></div>
+    <div class="form-group"><label>Prix barré (optionnel)</label><input type="number" id="prodCompare"></div>
+    <div class="form-group"><label>Catégorie</label><select id="prodCategory"></select></div>
+    <div class="form-group"><label>Tailles (séparées par des virgules)</label><input id="prodSizes" placeholder="S,M,L,XL"></div>
+    <div class="form-group"><label>Stock</label><input type="number" id="prodStock" value="0"></div>
+    <div class="form-group"><label>Image URL</label><input id="prodImage" placeholder="https://..."></div>
+    <div class="form-group"><label><input type="checkbox" id="prodFeatured"> Produit à la une</label></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeProductModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div id="orderModal" class="modal hidden" onclick="if(event.target===this)closeOrderModal()">
+  <div class="modal-content">
+    <h2>Détail de la commande</h2>
+    <div id="orderDetail"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeOrderModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin + '/api';
+let token = localStorage.getItem('gm_token');
+let currentProductId = null;
+let revenueChart = null;
+let salesChart = null;
+
+// Auth
+function login() {
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  fetch(API + '/auth/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username: user, password: pass})
+  }).then(r => r.json()).then(d => {
+    if (d.success) {
+      token = d.token;
+      localStorage.setItem('gm_token', token);
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      document.getElementById('userInfo').textContent = '👤 ' + d.user.username;
+      loadDashboard();
+    } else {
+      document.getElementById('loginError').textContent = d.error || 'Identifiants incorrects';
+    }
+  }).catch(() => {
+    document.getElementById('loginError').textContent = 'Erreur de connexion au serveur';
+  });
+}
+
+function logout() {
+  localStorage.removeItem('gm_token');
+  token = null;
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+}
+
+function apiHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + token
+  };
+}
+
+// Navigation
+function showPage(page, el) {
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) {
+    pageEl.classList.remove('hidden');
+    const titles = {dashboard:'Tableau de bord', products:'Gestion des Produits', orders:'Gestion des Commandes', reports:'Rapports Financiers'};
+    document.getElementById('pageTitle').textContent = titles[page] || page;
+    if (page === 'dashboard') loadDashboard();
+    if (page === 'products') loadProducts();
+    if (page === 'orders') loadOrders();
+    if (page === 'reports') loadReports();
+  }
+}
+
+// Dashboard
+function loadDashboard() {
+  fetch(API + '/admin/stats/dashboard', {headers: apiHeaders()})
+    .then(r => r.json()).then(d => {
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card"><div class="label">Aujourd'hui</div><div class="value blue">${d.today.orders} commandes</div><div class="sub">${d.today.revenue.toLocaleString()} FCFA</div></div>
+        <div class="stat-card"><div class="label">Ce mois</div><div class="value gold">${d.month.orders} commandes</div><div class="sub">${d.month.revenue.toLocaleString()} FCFA</div></div>
+        <div class="stat-card"><div class="label">Total</div><div class="value blue">${d.total.orders} commandes</div><div class="sub">${d.total.revenue.toLocaleString()} FCFA</div></div>
+        <div class="stat-card"><div class="label">Clients</div><div class="value gold">${d.total.customers}</div><div class="sub">clients uniques</div></div>
+      `;
+
+      // Top products
+      const topHtml = d.top_products.map((p,i) => `
+        <div class="top-item"><div style="display:flex;align-items:center;flex:1"><span class="rank">${i+1}</span><div class="info"><div class="name">${p.product_name}</div><div class="qty">${p.total_qty} vendus</div></div></div><div class="revenue">${parseInt(p.total_revenue).toLocaleString()} FCFA</div></div>
+      `).join('');
+      document.getElementById('topProducts').innerHTML = topHtml || '<p style="color:var(--gray)">Aucune vente</p>';
+
+      // Recent orders
+      if (d.recent_orders.length) {
+        document.getElementById('recentOrdersTable').innerHTML = `<table><thead><tr><th>Réf</th><th>Client</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody>
+          ${d.recent_orders.map(o => `<tr><td>${o.reference}</td><td>${o.name}</td><td>${parseInt(o.total).toLocaleString()} FCFA</td><td><span class="badge ${o.status}">${o.status.replace('_',' ')}</span></td><td>${new Date(o.created_at).toLocaleDateString('fr-FR')}</td></tr>`).join('')}
+        </tbody></table>`;
+      }
+
+      loadRevenueChart();
+    });
+}
+
+function loadRevenueChart() {
+  fetch(API + '/admin/stats/sales?period=monthly', {headers: apiHeaders()})
+    .then(r => r.json()).then(data => {
+      if (revenueChart) revenueChart.destroy();
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+      revenueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.date),
+          datasets: [{
+            label: 'Revenus (FCFA)',
+            data: data.map(d => d.revenue),
+            backgroundColor: 'rgba(201,168,76,.7)',
+            borderColor: '#c9a84c',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {legend: {display: false}},
+          scales: {y: {beginAtZero: true, ticks: {callback: v => v.toLocaleString() + ' FCFA'}}}
+        }
+      });
+    });
+}
+
+// Products
+function loadProducts() {
+  const search = document.getElementById('productSearch').value;
+  fetch(API + '/admin/products?limit=100', {headers: apiHeaders()})
+    .then(r => r.json()).then(d => {
+      const filtered = search ? d.products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())) : d.products;
+      document.getElementById('productsTable').innerHTML = filtered.map(p => `
+        <tr>
+          <td><img src="${p.image_url || 'https://via.placeholder.com/40'}" style="width:40px;height:40px;border-radius:6px;object-fit:cover"></td>
+          <td><strong>${p.name}</strong></td>
+          <td>${parseInt(p.price).toLocaleString()} FCFA</td>
+          <td><span style="color:${p.stock > 5 ? '#155724' : p.stock > 0 ? '#856404' : '#721c24'}">${p.stock}</span></td>
+          <td>${p.category_name || '-'}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="openProductModal(${p.id})">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">🗑️</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--gray)">Aucun produit</td></tr>';
+    });
+}
+
+function openProductModal(id) {
+  currentProductId = id || null;
+  document.getElementById('modalTitle').textContent = id ? 'Modifier le produit' : 'Nouveau Produit';
+  document.getElementById('prodName').value = '';
+  document.getElementById('prodDesc').value = '';
+  document.getElementById('prodPrice').value = '';
+  document.getElementById('prodCompare').value = '';
+  document.getElementById('prodSizes').value = '';
+  document.getElementById('prodStock').value = '0';
+  document.getElementById('prodImage').value = '';
+  document.getElementById('prodFeatured').checked = false;
+
+  if (id) {
+    fetch(API + '/admin/products?limit=100', {headers: apiHeaders()})
+      .then(r => r.json()).then(d => {
+        const p = d.products.find(x => x.id == id);
+        if (p) {
+          document.getElementById('prodName').value = p.name;
+          document.getElementById('prodDesc').value = p.description || '';
+          document.getElementById('prodPrice').value = p.price;
+          document.getElementById('prodCompare').value = p.compare_price || '';
+          document.getElementById('prodSizes').value = p.sizes || '';
+          document.getElementById('prodStock').value = p.stock;
+          document.getElementById('prodImage').value = p.image_url || '';
+          document.getElementById('prodFeatured').checked = !!p.featured;
+        }
+      });
+  }
+
+  document.getElementById('productModal').classList.remove('hidden');
+}
+
+function closeProductModal() {
+  document.getElementById('productModal').classList.add('hidden');
+  currentProductId = null;
+}
+
+function saveProduct() {
+  const data = {
+    name: document.getElementById('prodName').value,
+    description: document.getElementById('prodDesc').value,
+    price: parseInt(document.getElementById('prodPrice').value),
+    compare_price: document.getElementById('prodCompare').value || null,
+    category_id: parseInt(document.getElementById('prodCategory').value) || null,
+    sizes: document.getElementById('prodSizes').value,
+    stock: parseInt(document.getElementById('prodStock').value) || 0,
+    image_url: document.getElementById('prodImage').value,
+    featured: document.getElementById('prodFeatured').checked ? 1 : 0,
+  };
+
+  if (!data.name || !data.price) { alert('Nom et prix requis'); return; }
+
+  const url = currentProductId ? API + '/admin/products/update' : API + '/admin/products/create';
+  const method = currentProductId ? 'PUT' : 'POST';
+  if (currentProductId) data.id = currentProductId;
+
+  fetch(url, {method, headers: apiHeaders(), body: JSON.stringify(data)})
+    .then(r => r.json()).then(d => {
+      if (d.success) { closeProductModal(); loadProducts(); }
+      else alert(d.error || 'Erreur');
+    });
+}
+
+function deleteProduct(id) {
+  if (!confirm('Supprimer ce produit ?')) return;
+  fetch(API + '/admin/products/delete?id=' + id, {method: 'DELETE', headers: apiHeaders()})
+    .then(r => r.json()).then(d => {
+      if (d.success) loadProducts();
+      else alert(d.error);
+    });
+}
+
+// Orders
+let currentStatusFilter = '';
+
+function loadOrders(status) {
+  currentStatusFilter = status || '';
+  let url = API + '/admin/orders?limit=100';
+  if (status) url += '&status=' + status;
+  fetch(url, {headers: apiHeaders()})
+    .then(r => r.json()).then(d => {
+      document.getElementById('ordersTable').innerHTML = (d.orders || []).map(o => `
+        <tr>
+          <td><strong>${o.reference}</strong></td>
+          <td>${o.customer_name}</td>
+          <td>${o.customer_phone}</td>
+          <td>${parseInt(o.total).toLocaleString()} FCFA</td>
+          <td><span class="badge ${o.status}">${o.status.replace('_',' ')}</span></td>
+          <td>${new Date(o.created_at).toLocaleDateString('fr-FR')}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="showOrderDetail(${o.id})">📋</button>
+            <select onchange="updateOrderStatus(${o.id},this.value)" style="padding:4px 6px;border-radius:6px;font-size:12px">
+              <option value="">Changer...</option>
+              <option value="confirmee">Confirmer</option>
+              <option value="preparation">Préparation</option>
+              <option value="pret">Prêt</option>
+              <option value="livree">Livrée</option>
+              <option value="annulee">Annuler</option>
+            </select>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--gray)">Aucune commande</td></tr>';
+    });
+}
+
+function showOrderDetail(id) {
+  fetch(API + '/admin/orders?limit=1', {headers: apiHeaders()})
+    .then(r => r.json()).then(all => {
+      const o = all.orders.find(x => x.id == id);
+      if (!o) return;
+      const itemsHtml = (o.items || []).map(i => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span>${i.product_name} x${i.quantity}</span><span>${parseInt(i.total_price).toLocaleString()} FCFA</span></div>`).join('');
+      document.getElementById('orderDetail').innerHTML = `
+        <p><strong>Réf:</strong> ${o.reference}</p>
+        <p><strong>Client:</strong> ${o.customer_name}</p>
+        <p><strong>Téléphone:</strong> ${o.customer_phone}</p>
+        <p><strong>Statut:</strong> <span class="badge ${o.status}">${o.status.replace('_',' ')}</span></p>
+        <p><strong>Paiement:</strong> ${o.payment_status === 'paye' ? '✅ Payé' : '❌ Impayé'}</p>
+        <p><strong>Date:</strong> ${new Date(o.created_at).toLocaleString('fr-FR')}</p>
+        <div style="margin:16px 0"><h4>Articles</h4>${itemsHtml}</div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;font-size:18px;margin-top:8px"><span>Total</span><span style="color:var(--gold)">${parseInt(o.total).toLocaleString()} FCFA</span></div>
+        ${o.notes ? `<p style="margin-top:12px"><strong>Notes:</strong> ${o.notes}</p>` : ''}
+        <p style="margin-top:12px"><a href="https://wa.me/241${o.customer_phone}?text=Bonjour%20${encodeURIComponent(o.customer_name)}%20!%20Votre%20commande%20${o.reference}%20est%20${o.status.replace('_','%20')}." target="_blank" class="btn btn-gold" style="display:inline-block;text-decoration:none">📲 WhatsApp client</a></p>
+      `;
+      document.getElementById('orderModal').classList.remove('hidden');
+    });
+}
+
+function closeOrderModal() {
+  document.getElementById('orderModal').classList.add('hidden');
+}
+
+function updateOrderStatus(id, status) {
+  if (!status) return;
+  fetch(API + '/admin/orders/update', {
+    method: 'PUT',
+    headers: apiHeaders(),
+    body: JSON.stringify({id, status, admin_id: 1})
+  }).then(r => r.json()).then(d => {
+    if (d.success) loadOrders(currentStatusFilter);
+    else alert(d.error);
+  });
+}
+
+// Reports
+function loadReports() {
+  fetch(API + '/admin/stats/dashboard', {headers: apiHeaders()})
+    .then(r => r.json()).then(d => {
+      document.getElementById('reportStats').innerHTML = `
+        <div class="stat-card"><div class="label">Total Revenus</div><div class="value gold">${d.total.revenue.toLocaleString()} FCFA</div></div>
+        <div class="stat-card"><div class="label">Total Commandes</div><div class="value blue">${d.total.orders}</div></div>
+        <div class="stat-card"><div class="label">Clients Uniques</div><div class="value gold">${d.total.customers}</div></div>
+        <div class="stat-card"><div class="label">Moyenne/Panier</div><div class="value blue">${d.total.orders ? Math.round(d.total.revenue/d.total.orders).toLocaleString() : 0} FCFA</div></div>
+      `;
+    });
+
+  fetch(API + '/admin/stats/sales?period=monthly', {headers: apiHeaders()})
+    .then(r => r.json()).then(data => {
+      if (salesChart) salesChart.destroy();
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(d => d.date),
+          datasets: [
+            {label: 'Revenus', data: data.map(d => d.revenue), borderColor: '#c9a84c', backgroundColor: 'rgba(201,168,76,.1)', fill: true, tension: .4},
+            {label: 'Commandes', data: data.map(d => d.orders), borderColor: '#1a1a2e', backgroundColor: 'rgba(26,26,46,.1)', fill: true, tension: .4, yAxisID: 'y1'}
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {mode: 'index', intersect: false},
+          scales: {
+            y: {beginAtZero: true, position: 'left', ticks: {callback: v => v.toLocaleString() + ' FCFA'}},
+            y1: {beginAtZero: true, position: 'right', grid: {drawOnChartArea: false}, ticks: {callback: v => v + ' cmd'}}
+          }
+        }
+      });
+    });
+}
+
+// Init
+function loadCategories() {
+  fetch(API + '/categories').then(r => r.json()).then(d => {
+    const sel = document.getElementById('prodCategory');
+    sel.innerHTML = '<option value="">Sélectionner...</option>' + (d.categories || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  });
+}
+
+if (token) {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('userInfo').textContent = '👤 Admin';
+  loadCategories();
+  loadDashboard();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+<svg width="900" height="900" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="900" fill="#111"/>
+  <rect x="70" y="70" width="760" height="760" fill="#202020"/>
+  <path d="M348 170H552L664 246L604 360L562 338V680H338V338L296 360L236 246L348 170Z" fill="#F0EDE6"/>
+  <path d="M381 170C394 218 420 242 450 242C480 242 506 218 519 170" stroke="#B99859" stroke-width="18"/>
+  <line x1="450" y1="260" x2="450" y2="680" stroke="#D5D0C8" stroke-width="10"/>
+  <text x="450" y="770" fill="#C9A96A" font-family="Arial, sans-serif" font-size="34" text-anchor="middle">PRET-A-PORTER</text>
+</svg>
